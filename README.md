@@ -39,7 +39,7 @@ try {
   };
 
   if ('number' !== typeof request.age) {
-    throw new new AppError({
+    throw new AppError({
       code: 'ValidationError',
       context: {
         name: 'age',
