@@ -1,0 +1,46 @@
+{
+  "author": "Adam Pancutt <adam@pancutt.com>",
+  "bugs": {
+    "url": "https://github.com/apancutt/contextual-error/issues"
+  },
+  "description": "Emit errors described by a code and context.",
+  "dependencies": {
+    "luxon": "2"
+  },
+  "devDependencies": {
+    "@types/jest": "27",
+    "@types/luxon": "2",
+    "jest": "27",
+    "rimraf": "3",
+    "ts-jest": "27",
+    "typescript": "4"
+  },
+  "files": [
+    "dist/"
+  ],
+  "homepage": "https://github.com/apancutt/contextual-error#readme",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "keywords": [
+    "context",
+    "contextual",
+    "error"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "name": "contextual-error",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apancutt/contextual-error.git"
+  },
+  "scripts": {
+    "build": "tsc --project ./tsconfig.build.json",
+    "prebuild": "rimraf ./dist/",
+    "prepublishOnly": "yarn run build",
+    "test": "jest"
+  },
+  "types": "dist/index.d.ts",
+  "version": "0.0.1"
+}
