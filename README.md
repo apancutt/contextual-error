@@ -43,7 +43,7 @@ try {
       code: 'ValidationError',
       context: {
         name: 'age',
-        reason: 'Age must be a number',
+        reason: 'Value must be a number',
         value: request.age,
       },
     });
@@ -52,17 +52,26 @@ try {
 } catch (err) {
 
   console.log(err);
-
   // {
   //   code: 'ValidationError',
   //   context: {
   //     name: 'age',
-  //     reason: 'Age must be a number',
+  //     reason: 'Value must be a number',
   //     value: 'abc',
   //   },
   //   stack: <string>,
   //   timestamp: <DateTime>,
   // }
+
+  if (err instanceof AppError) {
+    switch (err.descriptor.code) {
+      case 'ValidationError':
+        const { name, reason, value } = err.descriptor.context;
+        alert(`Invalid value provided for "${name}". ${reason} but you provided "${String(value ?? '')}".`);
+        // Invalid value provided for "age". Value must be a number but you provided "abc".
+        break;
+    }
+  }
 
 }
 
