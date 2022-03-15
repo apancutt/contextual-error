@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon';
 
-export interface ContextualErrorJson<T extends ContextualErrorDescriptor> {
-  cause?: ContextualErrorJson<T>;
-  code?: ContextualError<T>['code'];
-  context?: ContextualError<T>['context'];
+export interface ContextualErrorJson<D extends ContextualErrorDescriptor> {
+  cause?: ContextualErrorJson<D>;
+  code?: ContextualErrorDescriptorCode<D>;
+  context?: ContextualErrorDescriptorContext<D>;
   message?: Error['message'];
   stack?: Error['stack'];
   timestamp?: string;
@@ -14,9 +14,13 @@ export interface ContextualErrorDescriptor {
   context: Record<string, unknown>;
 }
 
-export type ContextualErrorCode<E extends ContextualError> = E extends ContextualError<infer D> ? D['code'] : never;
+export type ContextualErrorCode<E extends ContextualError = ContextualError> = E extends ContextualError<infer D> ? ContextualErrorDescriptorCode<D> : never;
 
-export type ContextualErrorContext<E extends ContextualError, C extends ContextualErrorCode<E>> = E extends ContextualError<infer D> ? D extends { code: C } ? D['context'] : never : never;
+export type ContextualErrorContext<E extends ContextualError = ContextualError, C extends ContextualErrorCode<E> = ContextualErrorCode<E>> = E extends ContextualError<infer D> ? ContextualErrorDescriptorContext<D, C> : never;
+
+export type ContextualErrorDescriptorCode<D extends ContextualErrorDescriptor = ContextualErrorDescriptor> = D['code'];
+
+export type ContextualErrorDescriptorContext<D extends ContextualErrorDescriptor = ContextualErrorDescriptor, C extends ContextualErrorDescriptor['code'] = ContextualErrorDescriptor['code']> = D extends { code: C } ? D['context'] : never;
 
 export type ContextualErrorOptions = {
   cause?: unknown;
@@ -26,14 +30,12 @@ export type ContextualErrorOptions = {
 
 export abstract class ContextualError<T extends ContextualErrorDescriptor = ContextualErrorDescriptor> extends Error {
 
-  public readonly code: T['code'];
-  public readonly context: T['context'];
+  public readonly descriptor: T;
   public readonly timestamp: NonNullable<ContextualErrorOptions['timestamp']>;
 
-  public constructor(descriptor: T, options: ContextualErrorOptions = {}) {
+  public constructor(descriptor: ContextualError<T>['descriptor'], options: ContextualErrorOptions = {}) {
     super(options.message ?? descriptor.code, options.cause ? { cause: options.cause instanceof Error ? options.cause : new Error(String(options.cause)) } : {});
-    this.code = descriptor.code;
-    this.context = descriptor.context;
+    this.descriptor = descriptor;
     this.timestamp = options.timestamp ?? DateTime.now();
   }
 
@@ -42,10 +44,10 @@ export abstract class ContextualError<T extends ContextualErrorDescriptor = Cont
       ...(err.cause ? { cause: jsonify(err.cause) } : {}), // Don't return redundant undefined properties
       ...(err.stack ? { stack: err.stack } : {}), // Don't return redundant undefined properties
       ...(err instanceof ContextualError ? {
-        code: err.code,
-        context: err.context,
+        code: err.descriptor.code,
+        context: err.descriptor.context,
         timestamp: err.timestamp.toUTC().toISO(),
-        ...(err.message !== err.code ? { message: err.message } : {}), // Only expose custom messages
+        ...(err.message !== err.descriptor.code ? { message: err.message } : {}), // Only expose custom messages
       } : {
         message: err.message,
       }),

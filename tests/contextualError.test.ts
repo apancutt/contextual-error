@@ -15,8 +15,8 @@ it('creates an instance with expected properties', () => {
   expect(err).toBeInstanceOf(AppError);
   expect(err).toBeInstanceOf(Error);
   expect(err.cause).toBeUndefined();
-  expect(err.context).toBeDefined();
-  expect(err.code).toBe('ExampleError');
+  expect(err.descriptor.code).toBe('ExampleError');
+  expect(err.descriptor.context).toStrictEqual({ param: 'foo' });
   expect(err.message).toBe('ExampleError');
   expect(err.timestamp).toBeInstanceOf(DateTime);
   expect(err.timestamp.valueOf()).toBeLessThan(DateTime.now().valueOf());
