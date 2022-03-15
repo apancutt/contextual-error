@@ -60,7 +60,8 @@ try {
   //     reason: 'Age must be a number',
   //     value: 'abc',
   //   },
-  //   timestamp: <DateTime instance>,
+  //   stack: <string>,
+  //   timestamp: <DateTime>,
   // }
 
 }
