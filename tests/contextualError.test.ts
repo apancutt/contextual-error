@@ -7,7 +7,7 @@ type AppErrorDescriptor = {
   };
 };
 
-class AppError<C extends AppErrorDescriptor['code']> extends ContextualError<AppErrorDescriptor, C> {}
+class AppError<C extends AppErrorDescriptor['code'] = AppErrorDescriptor['code']> extends ContextualError<AppErrorDescriptor, C> {}
 
 it('creates an instance with expected properties', () => {
   const err = new AppError('ExampleError', { param: 'foo' });

@@ -30,7 +30,7 @@ type AppErrorDescriptor = (
   }
 );
 
-class AppError<C extends AppErrorDescriptor['code']> extends ContextualError<AppErrorDescriptor, C> {}
+class AppError<C extends AppErrorDescriptor['code'] = AppErrorDescriptor['code']> extends ContextualError<AppErrorDescriptor, C> {}
 
 try {
 
