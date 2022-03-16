@@ -1,5 +1,6 @@
 export interface ContextualErrorContext {
   code: string;
+  metadata: Record<string, unknown>;
 }
 
 export type ContextualErrorOptions = {

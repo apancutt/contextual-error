@@ -18,12 +18,15 @@ import { ContextualError } from 'contextual-error';
 type AppErrorContext = (
   {
     code: 'ServerError';
+    metadata: Record<string, never>;
   }
   | {
     code: 'ValidationError';
-    name: string;
-    reason: string;
-    value?: unknown;
+    metadata: {
+      name: string;
+      reason: string;
+      value?: unknown;
+    };
    }
 );
 
@@ -38,9 +41,11 @@ try {
   if ('number' !== typeof request.age) {
     throw new AppError({
       code: 'ValidationError',
-      name: 'age',
-      reason: 'Value must be a number',
-      value: request.age,
+      metadata: {
+        name: 'age',
+        reason: 'Value must be a number',
+        value: request.age,
+      },
     });
   }
 
@@ -51,16 +56,19 @@ try {
   //   ...stack...
   //   context: {
   //     code: 'ValidationError',
-  //     name: 'age',
-  //     reason: 'Value must be a number',
-  //     value: 'abc',
+  //     metadata: {
+  //       name: 'age',
+  //       reason: 'Value must be a number',
+  //       value: 'abc',
+  //     },
   //   },
   //   timestamp: '2000-01-01T00:00:00Z'
 
   if (err instanceof AppError) {
     switch (err.context.code) {
       case 'ValidationError':
-        alert(`Invalid value provided for "${err.context.name}". ${err.context.reason} but you provided "${String(err.context.value ?? '')}".`);
+        const { name, reason, value } = err.context.metadata;
+        alert(`Invalid value provided for "${name}". ${reason} but you provided "${String(value ?? '')}".`);
         // Invalid value provided for "age". Value must be a number but you provided "abc".
         break;
       case 'ServerError':
