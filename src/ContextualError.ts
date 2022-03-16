@@ -9,13 +9,34 @@ export type ContextualErrorOptions = {
   timestamp?: string;
 };
 
-export type ContextCode<Context extends ContextualErrorContext> = Context['code'];
+export type ContextualErrorLogger = { error: (message: string, context?: Record<string, unknown>) => void };
 
-export type ContextMetadata<Context extends ContextualErrorContext, Code extends ContextCode<Context>> = Context extends { code: Code } ? Context['metadata'] : never;
+export type ContextualErrorDump<E> = (
+  E extends Error
+    ? {
+      message: E['message'];
+      stack: E['stack'];
+      cause: ContextualErrorDump<unknown>;
+    } & (
+      E extends ContextualError<infer Context>
+        ? {
+          code: Context['code'];
+          metadata: Context['metadata'];
+        }
+        : {}
+    )
+    : {
+      message: string;
+    }
+);
 
-export type ContextualErrorCode<Error extends ContextualError> = Error extends ContextualError<infer Context> ? ContextCode<Context> : never;
+export type ContextCode<C extends ContextualErrorContext> = C['code'];
 
-export type ContextualErrorMetadata<Error extends ContextualError, Code extends ContextualErrorCode<Error>> = Error extends ContextualError<infer Context> ? ContextMetadata<Context, Code> : never;
+export type ContextMetadata<C extends ContextualErrorContext, C2 extends ContextCode<C>> = C extends { code: C2 } ? C['metadata'] : never;
+
+export type ContextualErrorCode<E extends ContextualError> = E extends ContextualError<infer C> ? ContextCode<C> : never;
+
+export type ContextualErrorMetadata<E extends ContextualError, C extends ContextualErrorCode<E>> = E extends ContextualError<infer C2> ? ContextMetadata<C2, C> : never;
 
 export abstract class ContextualError<C extends ContextualErrorContext = ContextualErrorContext> extends Error {
 
@@ -26,6 +47,46 @@ export abstract class ContextualError<C extends ContextualErrorContext = Context
     super(options.message ?? context.code, options.cause ? { cause: options.cause instanceof Error ? options.cause : new Error(String(options.cause)) } : {});
     this.context = context;
     this.timestamp = options.timestamp ?? new Date().toISOString();
+  }
+
+  public static log<E extends unknown>(err: E, logger: ContextualErrorLogger = console) {
+    const dump = this.dump(err);
+    logger.error(dump.message, dump);
+  }
+
+  public static dump<E extends unknown>(err: E) {
+    const dumpFn = (err: unknown): Record<string, unknown> => {
+      const result: Record<string, unknown> = {};
+      if (err instanceof Error) {
+        result.message = err.message;
+        if (err.stack) {
+          result.stack = err.stack;
+        }
+        if (err.cause) {
+          result.cause = err.cause && dumpFn(err.cause);
+        }
+        if (err instanceof ContextualError) {
+          result.code = err.context.code;
+          result.metadata = err.context.metadata;
+        }
+      } else {
+        result.message = String(err);
+      }
+      return result;
+    };
+    return dumpFn(err) as ContextualErrorDump<E>;
+  }
+
+  public dump() {
+    return ContextualError.dump(this);
+  }
+
+  public log() {
+    return ContextualError.log(this);
+  }
+
+  public toJSON() {
+    return this.dump();
   }
 
 }
