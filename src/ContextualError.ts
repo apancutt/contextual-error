@@ -1,10 +1,8 @@
-import { DateTime } from 'luxon';
-
-export interface ContextualErrorJson<D extends ContextualErrorDescriptor> {
-  cause?: ContextualErrorJson<D>;
+export interface ContextualErrorDump<D extends ContextualErrorDescriptor> {
+  cause?: ContextualErrorDump<D>;
   code?: ContextualErrorDescriptorCode<D>;
   context?: ContextualErrorDescriptorContext<D>;
-  message?: Error['message'];
+  message: Error['message'];
   stack?: Error['stack'];
   timestamp?: string;
 }
@@ -25,34 +23,20 @@ export type ContextualErrorDescriptorContext<D extends ContextualErrorDescriptor
 export type ContextualErrorOptions = {
   cause?: unknown;
   message?: Error['message'];
-  timestamp?: DateTime;
+  timestamp?: string;
 };
 
-export abstract class ContextualError<T extends ContextualErrorDescriptor = ContextualErrorDescriptor> extends Error {
+export abstract class ContextualError<D extends ContextualErrorDescriptor = ContextualErrorDescriptor, C extends D['code'] = D['code']> extends Error {
 
-  public readonly descriptor: T;
+  public readonly code: C;
+  public readonly context: ContextualErrorDescriptorContext<D, C>;
   public readonly timestamp: NonNullable<ContextualErrorOptions['timestamp']>;
 
-  public constructor(descriptor: ContextualError<T>['descriptor'], options: ContextualErrorOptions = {}) {
-    super(options.message ?? descriptor.code, options.cause ? { cause: options.cause instanceof Error ? options.cause : new Error(String(options.cause)) } : {});
-    this.descriptor = descriptor;
-    this.timestamp = options.timestamp ?? DateTime.now();
-  }
-
-  public toJSON() {
-    const jsonify = (err: Error): ContextualErrorJson<T> => ({
-      ...(err.cause ? { cause: jsonify(err.cause) } : {}), // Don't return redundant undefined properties
-      ...(err.stack ? { stack: err.stack } : {}), // Don't return redundant undefined properties
-      ...(err instanceof ContextualError ? {
-        code: err.descriptor.code,
-        context: err.descriptor.context,
-        timestamp: err.timestamp.toUTC().toISO(),
-        ...(err.message !== err.descriptor.code ? { message: err.message } : {}), // Only expose custom messages
-      } : {
-        message: err.message,
-      }),
-    });
-    return jsonify(this);
+  public constructor(code: ContextualError<D, C>['code'], context: ContextualError<D, C>['context'], options: ContextualErrorOptions = {}) {
+    super(options.message ?? code, options.cause ? { cause: options.cause instanceof Error ? options.cause : new Error(String(options.cause)) } : {});
+    this.code = code;
+    this.context = context;
+    this.timestamp = options.timestamp ?? new Date().toISOString();
   }
 
 }

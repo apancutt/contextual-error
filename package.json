@@ -4,12 +4,8 @@
     "url": "https://github.com/apancutt/contextual-error/issues"
   },
   "description": "Emit errors described by a code and context.",
-  "dependencies": {
-    "luxon": "2"
-  },
   "devDependencies": {
     "@types/jest": "27",
-    "@types/luxon": "2",
     "jest": "27",
     "rimraf": "3",
     "ts-jest": "27",

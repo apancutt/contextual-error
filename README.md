@@ -30,7 +30,7 @@ type AppErrorDescriptor = (
   }
 );
 
-class AppError extends ContextualError<AppErrorDescriptor> {}
+class AppError<C extends AppErrorDescriptor['code']> extends ContextualError<AppErrorDescriptor, C> {}
 
 try {
 
@@ -39,35 +39,30 @@ try {
   };
 
   if ('number' !== typeof request.age) {
-    throw new AppError({
-      code: 'ValidationError',
-      context: {
-        name: 'age',
-        reason: 'Value must be a number',
-        value: request.age,
-      },
+    throw new AppError('ValidationError', {
+      name: 'age',
+      reason: 'Value must be a number',
+      value: request.age,
     });
   }
 
 } catch (err) {
 
   console.log(err);
-  // {
+  // AppError: ValidationError
+  //   ...stack...
   //   code: 'ValidationError',
   //   context: {
   //     name: 'age',
   //     reason: 'Value must be a number',
   //     value: 'abc',
   //   },
-  //   stack: <string>,
-  //   timestamp: <DateTime>,
-  // }
+  //   timestamp: '2000-01-01T00:00:00Z'
 
   if (err instanceof AppError) {
-    switch (err.descriptor.code) {
+    switch (err.code) {
       case 'ValidationError':
-        const { name, reason, value } = err.descriptor.context;
-        alert(`Invalid value provided for "${name}". ${reason} but you provided "${String(value ?? '')}".`);
+        alert(`Invalid value provided for "${err.context.name}". ${err.context.reason} but you provided "${String(err.context.value ?? '')}".`);
         // Invalid value provided for "age". Value must be a number but you provided "abc".
         break;
     }
