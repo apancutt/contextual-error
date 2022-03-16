@@ -9,6 +9,14 @@ export type ContextualErrorOptions = {
   timestamp?: string;
 };
 
+export type ContextCode<Context extends ContextualErrorContext> = Context['code'];
+
+export type ContextMetadata<Context extends ContextualErrorContext, Code extends ContextCode<Context>> = Context extends { code: Code } ? Context['metadata'] : never;
+
+export type ContextualErrorCode<Error extends ContextualError> = Error extends ContextualError<infer Context> ? ContextCode<Context> : never;
+
+export type ContextualErrorMetadata<Error extends ContextualError, Code extends ContextualErrorCode<Error>> = Error extends ContextualError<infer Context> ? ContextMetadata<Context, Code> : never;
+
 export abstract class ContextualError<C extends ContextualErrorContext = ContextualErrorContext> extends Error {
 
   public readonly context: C;
