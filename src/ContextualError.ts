@@ -22,6 +22,7 @@ export type ContextualErrorDump<E> = (
         ? {
           code: Context['code'];
           metadata: Context['metadata'];
+          timestamp: string;
         }
         : {}
     )
@@ -68,6 +69,7 @@ export abstract class ContextualError<C extends ContextualErrorContext = Context
         if (err instanceof ContextualError) {
           result.code = err.context.code;
           result.metadata = err.context.metadata;
+          result.timestamp = err.timestamp;
         }
       } else {
         result.message = String(err);
