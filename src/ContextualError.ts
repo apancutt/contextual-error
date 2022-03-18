@@ -9,8 +9,6 @@ export type ContextualErrorOptions = {
   timestamp?: string;
 };
 
-export type ContextualErrorLogger = (message: string, context?: Record<string, unknown>) => void;
-
 export type ContextualErrorDump<E> = (
   E extends Error
     ? {
@@ -50,11 +48,6 @@ export abstract class ContextualError<C extends ContextualErrorContext = Context
     this.timestamp = options.timestamp ?? new Date().toISOString();
   }
 
-  public static log<E extends unknown>(err: E, logger: ContextualErrorLogger = console.error) {
-    const dump = this.dump(err);
-    logger(dump.message, dump);
-  }
-
   public static dump<E extends unknown>(err: E) {
     const dumpFn = (err: unknown): Record<string, unknown> => {
       const result: Record<string, unknown> = {};
@@ -81,10 +74,6 @@ export abstract class ContextualError<C extends ContextualErrorContext = Context
 
   public dump() {
     return ContextualError.dump(this);
-  }
-
-  public log() {
-    return ContextualError.log(this);
   }
 
   public toJSON() {
