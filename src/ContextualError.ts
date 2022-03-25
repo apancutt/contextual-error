@@ -13,7 +13,7 @@ export type ContextualErrorDump<E> = (
   E extends Error
     ? {
       message: E['message'];
-      stack: E['stack'];
+      stack: string[];
       cause: ContextualErrorDump<unknown>;
     } & (
       E extends ContextualError<infer Context>
@@ -54,7 +54,7 @@ export abstract class ContextualError<C extends ContextualErrorContext = Context
       if (err instanceof Error) {
         result.message = err.message;
         if (err.stack) {
-          result.stack = err.stack;
+          result.stack = err.stack.split(/\r?\n\s*/);
         }
         if (err.cause) {
           result.cause = err.cause && dumpFn(err.cause);
